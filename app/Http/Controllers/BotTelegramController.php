@@ -24,34 +24,25 @@ class BotTelegramController extends Controller
         $request = $updates->getMessage()->getText();
 
         // command .start
-        if (strtolower($updates->getMessage()->getText() === '.start')) {
-            return Telegram::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "Gunakan command .redeem <token> untuk klaim token \nContoh: .redeem 123456",
-            ]);
+        if ($updates->getMessage()->getText() === 'MAIN LAGI' || strtolower($updates->getMessage()->getText() === '.start' || $updates->getMessage()->getText() === '/start')) {
+            $text = "Gunakan command .redeem <token> untuk klaim token \nContoh: .redeem 123456";
+            return $this->sendMessage($chatId, $text);
         }
 
+        // comman GACHA -nomer token-
         if (strpos($request, 'GACHA') !== false) {
             $request = $this->getUserInput($request);
 
             $token = $this->checkTokenExist($request);
 
             if (blank($token)) {
-                $text = "Token {$request} tidak ditemukan";
-
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $text = "Token {$request} tidak ditemukan!\nCoba periksa kemabali token anda.";
+                return $this->sendMessage($chatId, $text);
             }
 
             if ($token->is_claimed) {
-                $text = "Token $token->token sudah digunakan";
-
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $text = "Kesempatan untuk menggunakan token $token->token sudah habis";
+                return $this->sendMessage($chatId, $text);
             }
 
             $prizes = collect([]);
@@ -64,9 +55,6 @@ class BotTelegramController extends Controller
 
             $prize = BoxItem::where('id', $prizeId)->first();
 
-            $photo = url('/') . '/' . $prize->image;
-            $caption = 'Selamat ' . $username . ' anda mendapatkan ' . $prize->item;
-
             $this->tokenUpdate($token);
 
             TokenReport::create([
@@ -74,30 +62,27 @@ class BotTelegramController extends Controller
                 'box_item_id' => $prize->id,
             ]);
 
-            Telegram::sendMessage([
-                'chat_id' => $chatId,
-                'text' => $caption,
-            ]);
+            $text = 'Selamat ' . $username . ' anda mendapatkan ' . $prize->item;
+            $this->sendMessage($chatId, $text);
 
-            Telegram::sendMessage([
-                'chat_id' => $chatId,
-                'text' => $photo,
-            ]);
+            $photo = url('/') . '/' . $prize->image;
+            $this->sendMessage($chatId, $photo);
 
             if (!$token->is_claimed) {
-                $text = "Token $token->token digunakan $token->used dari $token->chance \nSilahkan redeem lagi untuk mendapatkan hadiah lainnya";
+                $button  = "GACHA {$token->token}";
+                $reply_markup = $this->createButton($button);
 
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $text = "Token $token->token digunakan $token->used dari $token->chance \nSilahkan GACHA lagi untuk mendapatkan hadiah lainnya";
+                return $this->sendMessage($chatId, $text, $reply_markup);
             } else {
-                $text = "Token $token->token digunakan $token->used dari $token->chance \nToken sudah habis digunakan";
+                $text = "Token $token->token digunakan $token->used kali dari $token->chance kesempatan \nToken sudah habis tidak bisa digunakan lagi";
+                $this->sendMessage($chatId, $text);
 
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $button = 'MAIN LAGI';
+                $reply_markup = $this->createButton($button);
+
+                $text = 'tekan MAIN LAGI untuk melanjutkan';
+                return $this->sendMessage($chatId, $text, $reply_markup);
             }
         }
 
@@ -106,52 +91,31 @@ class BotTelegramController extends Controller
             $request = $this->getUserInput($request);
 
             if (blank($request)) {
-                $text = "Masukan token anda \ncontoh: .redeem 123456";
-
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $text = "Masukan token anda \nContoh: .redeem 123456";
+                return $this->sendMessage($chatId, $text);
             }
 
             $token = $this->checkTokenExist($request);
 
             if (blank($token)) {
                 $text = "Token {$request} tidak ditemukan";
-
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                return $this->sendMessage($chatId, $text);
             }
 
             if ($token->is_claimed) {
-                $text = "Token $token->token sudah digunakan";
-
-                return Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => $text,
-                ]);
+                $text = "Kesempatan untuk menggunakan token $token->token sudah habis";
+                return $this->sendMessage($chatId, $text);
             }
 
-            $keyboard = [
-                ["GACHA {$token->token}"],
-            ];
+            $button = "GACHA {$token->token}";
+            $reply_markup = $this->createButton($button);
 
-            $reply_markup = Keyboard::make([
-                "keyboard" => $keyboard,
-                "resize_keyboard" => true,
-                "one_time_keyboard" => true
-            ]);
-
-            return Telegram::sendMessage([
-                "chat_id" => $chatId,
-                "text" => "Klik tombol dibawah ini untuk mengklaim token",
-                "reply_markup" => $reply_markup
-            ]);
+            $text = "Klik GACHA untuk mengklaim token";
+            return $this->sendMessage($chatId, $text, $reply_markup);
         }
     }
 
+    // untuk get inputan user
     protected function getUserInput($input)
     {
         $words = explode(" ", $input);
@@ -161,6 +125,7 @@ class BotTelegramController extends Controller
         return $request;
     }
 
+    // untuk cek apakah token yang dimasukan ada di database
     protected function checkTokenExist($token)
     {
         $token = Token::whereRaw("BINARY token = '{$token}'")->first();
@@ -168,6 +133,7 @@ class BotTelegramController extends Controller
         return $token;
     }
 
+    // untuk update token di database
     protected function tokenUpdate(Token $token)
     {
         $used = $token->used + 1;
@@ -180,6 +146,30 @@ class BotTelegramController extends Controller
 
         $token->update([
             'used' => $used,
+        ]);
+    }
+
+    // untuk mengirim pesan
+    protected function sendMessage($chatId, $text, $reply_markup = null)
+    {
+        return Telegram::sendMessage([
+            "chat_id" => $chatId,
+            "text" => $text,
+            "reply_markup" => $reply_markup
+        ]);
+    }
+
+    // untuk membuat tombol 
+    protected function createButton($button)
+    {
+        $keyboard = [
+            [$button],
+        ];
+
+        return Keyboard::make([
+            "keyboard" => $keyboard,
+            "resize_keyboard" => true,
+            "one_time_keyboard" => true
         ]);
     }
 }
