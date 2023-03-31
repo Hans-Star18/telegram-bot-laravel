@@ -12,8 +12,15 @@
                 <h3>Item List</h3>
             </div>
 
+            @if (session()->has('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session()->get('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <div class="card-body">
-                <a href="" class="btn btn-sm btn-outline-primary rounded-0">Add New Item</a>
+                <a href="{{ route('admin.items.add') }}" class="btn btn-sm btn-outline-primary rounded-0">Add New Item</a>
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -27,15 +34,25 @@
                         @forelse ($items as $item)
                             <tr>
                                 <td class="fw-bold fs-1">{{ $item->drawbox->box }}</td>
-                                <td>{{ $item->item }}</td>
+                                <td class="text-capitalize">{{ $item->item }}</td>
                                 <td>
                                     <img src="{{ asset($item->image) }}" alt="item-image"
                                         class="img-responsive img-thumbnail" style="max-width: 200px;">
                                 </td>
                                 <td>
-                                    <a href="" class="btn btn-sm btn-outline-primary rounded-0 mb-3">Detail</a>
-                                    <a href="" class="btn btn-sm btn-outline-success rounded-0 mb-3">Edit</a>
-                                    <a href="" class="btn btn-sm btn-outline-danger rounded-0 mb-3">Delete</a>
+                                    <a href="{{ route('admin.items.edit', $item->id) }}"
+                                        class="btn btn-sm btn-outline-success rounded-0 mb-3">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('delete')
+
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-0 mb-3">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty

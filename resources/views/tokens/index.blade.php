@@ -12,8 +12,15 @@
                 <h3>Token List</h3>
             </div>
 
+            @if (session()->has('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session()->get('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <div class="card-body">
-                <a href="" class="btn btn-sm btn-outline-primary rounded-0">Add New Token</a>
+                <a href="{{ route('admin.tokens.add') }}" class="btn btn-sm btn-outline-primary rounded-0">Add New Token</a>
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -40,9 +47,19 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="" class="btn btn-sm btn-outline-primary rounded-0 mb-3">Detail</a>
-                                    <a href="" class="btn btn-sm btn-outline-success rounded-0 mb-3">Edit</a>
-                                    <a href="" class="btn btn-sm btn-outline-danger rounded-0 mb-3">Delete</a>
+                                    <a href="{{ route('admin.tokens.edit', $token->id) }}"
+                                        class="btn btn-sm btn-outline-success rounded-0 mb-3">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('admin.tokens.destroy', $token->id) }}" method="post"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('delete')
+
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-0 mb-3">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty

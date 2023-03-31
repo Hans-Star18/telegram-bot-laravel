@@ -12,8 +12,15 @@
                 <h3>Box List</h3>
             </div>
 
+            @if (session()->has('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session()->get('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <div class="card-body">
-                <a href="" class="btn btn-sm btn-outline-primary rounded-0">Add New Box</a>
+                <a href="{{ route('admin.box.add') }}" class="btn btn-sm btn-outline-primary rounded-0">Add New Box</a>
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -28,10 +35,22 @@
                                 <td>{{ $box->box }}</td>
                                 <td>{{ $box->boxItems->count() }}</td>
                                 <td>
-                                    <a href="" class="btn btn-sm btn-outline-primary rounded-0 mb-3">Detail</a>
-                                    <a href="" class="btn btn-sm btn-outline-success rounded-0 mb-3">Edit</a>
-                                    <a href="" class="btn btn-sm btn-outline-danger rounded-0 mb-3">Delete</a>
-                                    <a href="" class="btn btn-sm btn-outline-dark rounded-0 mb-3">Show Items</a>
+                                    <a href="{{ route('admin.box.edit', $box->id) }}"
+                                        class="btn btn-sm btn-outline-success rounded-0 mb-3">
+                                        Edit
+                                    </a>
+                                    {{-- <form action="{{ route('admin.box.destroy', $box->id) }}" method="post"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('delete')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-0 mb-3">
+                                            Delete
+                                        </button>
+                                    </form> --}}
+                                    <a href="{{ route('admin.box.show', $box->id) }}"
+                                        class="btn btn-sm btn-outline-dark rounded-0 mb-3">
+                                        Show Items
+                                    </a>
                                 </td>
                             </tr>
                         @empty

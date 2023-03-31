@@ -13,14 +13,14 @@
             </div>
 
             <div class="card-body">
+                <a href="{{ route('admin.reports.export') }}" class="btn btn-sm btn-outline-success rounded-0">Recap Excel</a>
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
                             <th>Token</th>
                             <th>Prize</th>
                             <th>Date Used</th>
-                            <th>Time User</th>
-                            <th>Action</th>
+                            <th>Time Used</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -30,9 +30,6 @@
                                 <td>{{ $report->item->item }}</td>
                                 <td>{{ $report->created_at->format('d-m-Y') }}</td>
                                 <td>{{ $report->created_at->format('H : i') }}</td>
-                                <td>
-                                    <a href="" class="btn btn-sm btn-outline-success rounded-0">Recap Excel</a>
-                                </td>
                             </tr>
                         @empty
                             <tr>
